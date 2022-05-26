@@ -1,0 +1,195 @@
+--Q1
+create table Salesperson(
+    name varchar2(10),
+    age number,
+    salary number,
+    primary key(Name)
+);
+
+create table Customer(
+    Name varchar2(10),
+    city varchar2(20),
+    industrytype varchar2(10),
+    primary key(Name)
+);
+
+create table Orders(
+    numbers number,
+    custname varchar2(10),
+    salesperson varchar2(10),
+    amount varchar2(10),
+    foreign key (custname) references Customer(Name),
+    foreign key (salesperson) references Salesperson(Name)
+);
+
+insert into Salesperson(Name,age,salary) values('Tom',32,10000);
+insert into Salesperson(Name,age,salary) values('Joy',26,15000);
+insert into Salesperson(Name,age,salary) values('James',24,9000);
+
+insert into Customer(Name, city, industrytype) values('Say', 'LA', '기자');
+insert into Customer(Name, city, industrytype) values('Numu', 'US', '가수');
+insert into Customer(Name, city, industrytype) values('Moon', 'KR', '대통령');
+insert into Customer(Name, city, industrytype) values('Kai', 'LA', '교수');
+    
+insert into Orders(numbers, custname, salesperson, amount) values(1, 'Say', 'Tom', 1000 );
+insert into Orders(numbers, custname, salesperson, amount) values(2, 'Numu', 'James', 2000 );
+insert into Orders(numbers, custname, salesperson, amount) values(3, 'Moon', 'Joy', 3000 );
+insert into Orders(numbers, custname, salesperson, amount) values(4, 'Kai', 'Tom', 4000 );
+    
+
+
+--Q6
+select count(salesperson) as customer
+from orders
+group by salesperson;
+
+--Q7
+select name,age
+from Salesperson
+where name in (
+    select salesperson
+    from orders
+    where custname in(
+        select name
+        from customer
+        where city='LA')
+);
+
+--Q8
+select salesperson.name, salesperson.age --판매원 이름,나이
+from orders join customer on orders.custname=customer.name 
+            join salesperson on orders.salesperson=salesperson.name
+            where customer.city='LA';
+
+--Q9
+select name,age
+from Salesperson s1
+where 2 <=(
+    select count(salesperson)
+    from orders
+    where orders.salesperson=s1.name
+);
+
+--Q10
+update Salesperson
+Set salary=45000 
+where name='Tom';
+
+
+
+
+
+
+--Q1
+create table Employee
+(
+	empno number,
+	name varchar2(10),
+	phoneno varchar2(13),
+	address varchar2(20),
+	sex varchar2(10),
+	position varchar(20),
+	deptno number,
+    primary key(empno)
+);
+
+create table Department
+(
+	deptno number,
+	deptname varchar2(20),
+	manager varchar2(20),
+    primary key(deptno)
+);
+
+create table Project
+(
+	projno number,
+	projname varchar(20),
+	deptno number,
+    primary key(projno)
+);
+
+create table Works
+(
+	empno number,
+	projno number,
+	hours_worked number,
+    primary key(empno,projno)
+);
+
+insert into Employee values(1, '민준', '010-1234-1230', '서울', '남자', 'IT', 1);
+insert into Employee values(2, '준서', '010-1334-1130', '부산', '남자', 'service', 2);
+insert into Employee values(3, '민지', '010-1234-1530', '서울', '여자', 'service', 3);
+insert into Employee values(4, '예서', '010-1984-1120', '서울', '여자', 'IT', 4);
+
+insert into Department values(1, '개발1팀', '남형');
+insert into Department values(2, '개발2팀', '진서');
+insert into Department values(3, '서비스1팀', '진우');
+insert into Department values(4, '서비스2팀', '재원');
+
+insert into Project values(1, 'Login', 1);
+insert into Project values(2, 'Web', 2);
+insert into Project values(3, 'Clinet', 3);
+
+insert into Works values(1, 1, 10);
+insert into Works values(2, 3, 3);
+insert into Works values(3, 3, 7);
+insert into Works values(4, 1, 5);
+
+--Q2
+select name
+from Employee;
+
+--Q3
+select name
+from Employee
+where sex='여자';
+
+--Q4
+select manager
+from Department;
+
+--Q5
+select name,address
+from employee
+where position='IT';
+
+--Q6
+select count(*) as employee
+from employee e,
+(
+	select deptno
+	from department
+	where manager = '홍길동'
+) dn
+where e.deptno = dn.deptno;
+
+--Q7
+select d.deptname, e.name, w.hours_worked 
+from works w, employee e , department d 
+where w.empno = e.empno and e.deptno = d.deptno 
+order by hours_worked;
+
+--Q8
+select re.projno '프로젝트 번호', re.projname '프로젝트 이름', re.count '사원 수'
+from employee e join 
+(
+	select w.empno, w.projno, p.projname ,if(count(*) >= 2, 'y', 'n') 'check', count(*) count
+	from works w join project p 
+	on w.projno = p.projno 
+	group by projno
+) re
+on e.empno  = re.empno
+where re.check = 'y';
+
+
+--Q9
+select e1.name
+from employee e1, 
+(
+	select if(count(*) >= 3, deptno , null) 'check'
+	from employee
+	group by deptno
+) e2
+where e1.deptno = e2.check;
+
